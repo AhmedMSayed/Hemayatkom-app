@@ -1,0 +1,6 @@
+flutter_native_splash:
+  image: assets/hemaya.png
+  color: "009F98"
+  android: true
+  ios: true
+  android_disable_fullscreen: true
