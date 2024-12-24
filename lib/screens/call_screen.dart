@@ -303,7 +303,7 @@ class _CallScreenState extends State<CallScreen> {
                                 ),
                                 SizedBox(height: 8.0),
                                 Text(
-                                  '911',
+                                  'Call',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
