@@ -53,7 +53,7 @@ class _CallScreenState extends State<CallScreen> {
     // initializing renderers
     _localRTCVideoRenderer.initialize();
     _remoteRTCVideoRenderer.initialize();
-    print(incomingCall);
+    print("incomingCall: $incomingCall");
     if (incomingCall) {
       _setupPeerConnection();
     }
@@ -141,7 +141,7 @@ class _CallScreenState extends State<CallScreen> {
 
       // send SDP answer to remote peer over signalling
 
-      print(widget.callerId + " a7a " + widget.calleeId);
+      print("${widget.callerId} a7a ${widget.calleeId}");
 
       socket!.emit("answerCall", {
         "callerId": widget.callerId,

@@ -11,10 +11,10 @@ import 'calls_screen.dart';
 
 class JoinScreen extends StatefulWidget {
   final String selfCallerId, name, userId, email, password;
-  late double? lat;
-  late double? long;
+  final double? lat;
+  final double? long;
 
-  JoinScreen({
+  const JoinScreen({
     super.key,
     required this.selfCallerId,
     required this.name,
@@ -65,11 +65,11 @@ class _JoinScreenState extends State<JoinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: Container(
-          color: Color.fromRGBO(234, 234, 234, 1),
+          color: const Color.fromRGBO(234, 234, 234, 1),
           child: Stack(
             children: [
               Column(
@@ -78,7 +78,7 @@ class _JoinScreenState extends State<JoinScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        margin: EdgeInsets.all(20),
+                        margin: const EdgeInsets.all(20),
                         padding: const EdgeInsets.only(top: 20.0),
                         child: Image.asset(
                           'assets/hemaya.png',
@@ -87,20 +87,20 @@ class _JoinScreenState extends State<JoinScreen> {
                         ),
                       ),
                       Container(
-                        margin: EdgeInsets.all(20),
+                        margin: const EdgeInsets.all(20),
                         child: Row(
                           children: [
                             Text(
                               widget.name,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.black45, fontSize: 18),
                             ),
                             Container(
-                                margin: EdgeInsets.only(right: 5, left: 5),
+                                margin: const EdgeInsets.only(right: 5, left: 5),
                                 width: 45,
                                 height: 45,
                                 child: Image.asset("assets/profile.png")),
-                            Icon(
+                            const Icon(
                               Icons.menu,
                               color: Color.fromRGBO(10, 144, 163, 1),
                             ),
@@ -127,7 +127,7 @@ class _JoinScreenState extends State<JoinScreen> {
                           const EdgeInsets.only(left: 8.0, right: 8.0, top: 50),
                       // padding: const EdgeInsets.only(top: 20, bottom: 160),
                       child: Container(
-                        margin: EdgeInsets.only(top: 100),
+                        margin: const EdgeInsets.only(top: 100),
                         alignment: Alignment.center,
                         child: Column(
                           children: [
@@ -135,11 +135,11 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
@@ -158,15 +158,15 @@ class _JoinScreenState extends State<JoinScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'بلاغ جديد',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: Image.asset(
@@ -180,11 +180,11 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
@@ -204,15 +204,15 @@ class _JoinScreenState extends State<JoinScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'البلاغات المغلقة',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: Image.asset(
@@ -226,11 +226,11 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
@@ -249,15 +249,15 @@ class _JoinScreenState extends State<JoinScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'البلاغات المعلقة',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: Image.asset(
@@ -271,18 +271,18 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  LandingScreen().storage.deleteAll();
+                                  const LandingScreen().storage.deleteAll();
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -295,15 +295,15 @@ class _JoinScreenState extends State<JoinScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'صندوق الرسائل',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: Image.asset(
@@ -317,18 +317,18 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  LandingScreen().storage.deleteAll();
+                                  const LandingScreen().storage.deleteAll();
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -343,15 +343,15 @@ class _JoinScreenState extends State<JoinScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'حساب المستخدم',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 25,
                                         width: 25,
                                         child: Image.asset(
@@ -365,38 +365,38 @@ class _JoinScreenState extends State<JoinScreen> {
                             Container(
                               width: 250,
                               height: 50,
-                              margin: EdgeInsets.only(top: 10),
+                              margin: const EdgeInsets.only(top: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromRGBO(242, 242, 242, 1),
+                                      const Color.fromRGBO(242, 242, 242, 1),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10.0)),
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  LandingScreen().storage.deleteAll();
+                                  const LandingScreen().storage.deleteAll();
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            LoginScreen(isLoggedIn: false)),
+                                            const LoginScreen(isLoggedIn: false)),
                                   );
                                 },
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Opacity(
+                                    const Opacity(
                                       opacity: 0,
                                       child: Icon(Icons.arrow_forward),
                                     ),
-                                    Text(
+                                    const Text(
                                       'تسجيل الخروج',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    Container(
+                                    SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: Image.asset(
@@ -418,7 +418,7 @@ class _JoinScreenState extends State<JoinScreen> {
                   print(callState.sdpOffer);
                   if (callState.incomingCall == false) {
                     // Handle the case where callState is null
-                    return SizedBox.shrink();
+                    return const SizedBox.shrink();
                   }
                   return Visibility(
                     visible: callState.incomingCall,

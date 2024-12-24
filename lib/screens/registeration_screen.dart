@@ -66,7 +66,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(top: 50.0),
                 child: Image.asset(
                   'assets/hemaya.png',
                   width: 140,
@@ -101,7 +101,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 5.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 50,
                         child: Directionality(
@@ -115,7 +115,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               labelText: 'إيميل المستخدم',
-                              prefixIcon: Icon(Icons.email),
+                              prefixIcon: const Icon(Icons.email),
                             ),
                             onChanged: (value) {
                               setState(() {
@@ -129,7 +129,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 50,
                         child: Directionality(
@@ -143,7 +143,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               labelText: 'اسم المستخدم',
-                              prefixIcon: Icon(Icons.person),
+                              prefixIcon: const Icon(Icons.person),
                             ),
                             onChanged: (value) {
                               setState(() {
@@ -157,7 +157,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 50,
                         child: Directionality(
@@ -189,7 +189,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 10.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 50,
                         child: Directionality(
@@ -204,7 +204,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               labelText: 'تأكيد كلمة المرور',
-                              prefixIcon: Icon(Icons.lock),
+                              prefixIcon: const Icon(Icons.lock),
                               errorText: !isPasswordMatch
                                   ? 'كلمة المرور غير متطابقة'
                                   : null,
@@ -220,12 +220,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 20.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 40,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 colors: [
                                   Color.fromARGB(207, 207, 207, 207),
                                   Colors.white,
@@ -235,7 +235,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 end: Alignment.bottomCenter,
                               ),
                               borderRadius: BorderRadius.circular(7),
-                              boxShadow: <BoxShadow>[
+                              boxShadow: const <BoxShadow>[
                                 BoxShadow(
                                     color: Color.fromRGBO(
                                         0, 0, 0, 0.57), //shadow for button
@@ -243,9 +243,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ]),
                           child: TextButton(
                             style: ButtonStyle(
-                              foregroundColor: MaterialStateProperty.all<Color>(
+                              foregroundColor: WidgetStateProperty.all<Color>(
                                   Colors.black),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   Colors.transparent),
                             ),
                             onPressed: () async {
@@ -275,10 +275,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 }
                               }
                             },
-                            child: Padding(
+                            child: const Padding(
                               padding:
-                                  const EdgeInsets.only(right: 10.0, left: 10),
-                              child: const Text(
+                                  EdgeInsets.only(right: 10.0, left: 10),
+                              child: Text(
                                   style: TextStyle(fontSize: 16), "إنشاء حساب"),
                             ),
                           ),
@@ -287,12 +287,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 22.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
                         height: 40,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 colors: [
                                   Color.fromARGB(207, 207, 207, 207),
                                   Colors.white,
@@ -302,7 +302,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 end: Alignment.bottomCenter,
                               ),
                               borderRadius: BorderRadius.circular(7),
-                              boxShadow: <BoxShadow>[
+                              boxShadow: const <BoxShadow>[
                                 BoxShadow(
                                     color: Color.fromRGBO(
                                         0, 0, 0, 0.57), //shadow for button
@@ -310,9 +310,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ]),
                           child: TextButton(
                             style: ButtonStyle(
-                              foregroundColor: MaterialStateProperty.all<Color>(
+                              foregroundColor: WidgetStateProperty.all<Color>(
                                   Colors.black),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   Colors.transparent),
                             ),
                             onPressed: () async {
@@ -320,15 +320,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => LoginScreen(
+                                    builder: (context) => const LoginScreen(
                                           isLoggedIn: false,
                                         )),
                               );
                             },
-                            child: Padding(
+                            child: const Padding(
                               padding:
-                                  const EdgeInsets.only(right: 10.0, left: 10),
-                              child: const Text(
+                                  EdgeInsets.only(right: 10.0, left: 10),
+                              child: Text(
                                   style: TextStyle(fontSize: 16),
                                   'تسجيل الدخول'),
                             ),

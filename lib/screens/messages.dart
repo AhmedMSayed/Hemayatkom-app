@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class Messages extends StatefulWidget {
   final String userId;
 
-  const Messages({Key? key, required this.userId}) : super(key: key);
+  const Messages({super.key, required this.userId});
 
   @override
   State<Messages> createState() => _MessagesState();
@@ -57,7 +57,7 @@ class _MessagesState extends State<Messages> {
                 future: getSessions(widget.userId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -65,7 +65,7 @@ class _MessagesState extends State<Messages> {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No sessions found.'));
+                    return const Center(child: Text('No sessions found.'));
                   }
 
                   return ListView.builder(
@@ -90,7 +90,7 @@ class _MessagesState extends State<Messages> {
 class NotificationItem extends StatelessWidget {
   final Map<String, dynamic> sessionData;
 
-  NotificationItem({required this.sessionData});
+  const NotificationItem({super.key, required this.sessionData});
 
   String formatTimestamp(Map<String, dynamic> timestamp) {
     int seconds = timestamp['_seconds'];
@@ -134,12 +134,12 @@ class NotificationItem extends StatelessWidget {
 
     return Container(
       color: Colors.white54,
-      margin: EdgeInsets.all(10),
-      padding: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
@@ -158,21 +158,21 @@ class NotificationItem extends StatelessWidget {
               ),
             ],
           ),
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "${formatTimestamp(sessionData["timestamp"])}",
-                  style: TextStyle(fontSize: 12),
+                  formatTimestamp(sessionData["timestamp"]),
+                  style: const TextStyle(fontSize: 12),
                   textAlign: TextAlign.right,
                 ),
                 Wrap(
                   children: [
                     Text(
                       "تم تقديم بلاغ برقم ${sessionData["timestamp"]["_seconds"]} $text",
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                       textAlign: TextAlign.right,
                     ),
                   ],

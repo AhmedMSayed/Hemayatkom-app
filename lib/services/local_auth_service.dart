@@ -1,6 +1,6 @@
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
-import 'package:local_auth_ios/local_auth_ios.dart';
+import 'package:local_auth_darwin/types/auth_messages_ios.dart';
 
 class LocalAuth {
   static final _auth = LocalAuthentication();
@@ -19,9 +19,9 @@ class LocalAuth {
 
       return await _auth.authenticate(
         authMessages: [
-          AndroidAuthMessages(
+          const AndroidAuthMessages(
               signInTitle: "تسجيل الدخول", cancelButton: "الغاء"),
-          IOSAuthMessages(cancelButton: "الغاء")
+          const IOSAuthMessages(cancelButton: "الغاء")
         ],
         localizedReason: 'تسجيل الدخول',
         options: const AuthenticationOptions(

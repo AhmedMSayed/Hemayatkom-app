@@ -7,11 +7,10 @@ class CallsScreen extends StatefulWidget {
   final String userId;
   final bool isAnswered;
 
-  const CallsScreen({Key? key, required this.userId, required this.isAnswered})
-      : super(key: key);
+  const CallsScreen({super.key, required this.userId, required this.isAnswered});
 
   @override
-  _CallsScreenState createState() => _CallsScreenState();
+  State<CallsScreen> createState() => _CallsScreenState();
 }
 
 class _CallsScreenState extends State<CallsScreen> {
@@ -100,7 +99,7 @@ class _CallsScreenState extends State<CallsScreen> {
                 future: getSessions(widget.userId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -108,7 +107,7 @@ class _CallsScreenState extends State<CallsScreen> {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No sessions found.'));
+                    return const Center(child: Text('No sessions found.'));
                   }
 
                   return ListView.builder(
@@ -119,7 +118,7 @@ class _CallsScreenState extends State<CallsScreen> {
 
                       // Use your session data here to build the list item
                       return Container(
-                        margin: EdgeInsets.all(5),
+                        margin: const EdgeInsets.all(5),
                         child: ListTile(
                           tileColor: Colors.white30,
                           trailing: Column(
@@ -138,11 +137,11 @@ class _CallsScreenState extends State<CallsScreen> {
                                 : Colors.orange,
                             child: Center(
                                 child: widget.isAnswered
-                                    ? Text(
+                                    ? const Text(
                                         "بلاغ مغلق",
                                         style: TextStyle(color: Colors.white),
                                       )
-                                    : Text("بلاغ معلق",
+                                    : const Text("بلاغ معلق",
                                         style: TextStyle(color: Colors.white))),
                           ),
                         ),

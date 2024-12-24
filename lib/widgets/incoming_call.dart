@@ -53,7 +53,7 @@ class _IncomingCallState extends State<IncomingCall> {
         borderRadius:
             BorderRadius.circular(15.0), // Adjust border radius as needed
       ),
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

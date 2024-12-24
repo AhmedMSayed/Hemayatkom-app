@@ -95,8 +95,9 @@ class _ProfileState extends State<Profile> {
                       child: TextButton(
                         onPressed: isEditing ? _saveChanges : null,
                         style: TextButton.styleFrom(
-                            backgroundColor:
-                                isEditing ? Color(0xFF009F98) : Colors.grey),
+                            backgroundColor: isEditing
+                                ? const Color(0xFF009F98)
+                                : Colors.grey),
                         child: const Row(
                           children: [
                             Text(
@@ -211,13 +212,8 @@ class _ProfileState extends State<Profile> {
   }
 }
 
-Future<Map<String, dynamic>?> updateUser(
-  BuildContext context,
-  String userId,
-  String name,
-  String email,
-  String phoneNumber,
-  String password) async {
+Future<Map<String, dynamic>?> updateUser(BuildContext context, String userId,
+    String name, String email, String phoneNumber, String password) async {
   final url = Uri.parse("https://hemaya.site/users/$userId");
 
   // Create a map with the updated user data
@@ -242,7 +238,7 @@ Future<Map<String, dynamic>?> updateUser(
       // Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       // return jsonResponse;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('User updated successfully'),
           backgroundColor: Colors.green,
         ),
@@ -250,7 +246,7 @@ Future<Map<String, dynamic>?> updateUser(
       return null;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Failed to update user. Please try again.'),
           backgroundColor: Colors.red,
         ),

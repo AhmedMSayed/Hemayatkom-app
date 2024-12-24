@@ -1,17 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:hemaya/providers/call_state.dart';
 import 'package:hemaya/screens/join_screen.dart';
 import 'package:hemaya/screens/langdingScreen.dart';
 import 'package:hemaya/screens/registeration_screen.dart';
 import 'package:hemaya/services/local_auth_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 import 'package:provider/provider.dart';
-// import 'package:provider/provider.dart';
-// import 'package:hemaya/providers/user_provider.dart';
 import '../services/signalling.service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,59 +31,33 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
   }
 
-  Future<Map<String, double>> getLocation() async {
-    try {
-      // Request permission to access the device's location
-      LocationPermission permission = await Geolocator.requestPermission();
+  Future<Map<String, double>> getCurrentPosition() async {
+    Location location = Location();
 
-      if (permission == LocationPermission.denied) {
-        // Handle the case when the user denies the location permission
+    bool isLocationServiceEnabled = await location.serviceEnabled();
+    if (!isLocationServiceEnabled) {
+      isLocationServiceEnabled = await location.requestService();
+      if (!isLocationServiceEnabled) {
+        print('Location services are disabled.');
+        return {'latitude': 0.0, 'longitude': 0.0};
+      }
+    }
+
+    PermissionStatus permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
         print('Location permission denied.');
         return {'latitude': 0.0, 'longitude': 0.0};
       }
-
-      if (permission == LocationPermission.deniedForever) {
-        // Handle the case when the user denies the location permission forever
-        print(
-            'Location permission denied forever. You need to enable it from settings.');
-        return {'latitude': 0.0, 'longitude': 0.0};
-      }
-
-      // Get the current position (latitude and longitude)
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy:
-            LocationAccuracy.high, // You can choose the desired accuracy
-      );
-
-      double latitude = position.latitude;
-      double longitude = position.longitude;
-
-      print('Latitude: $latitude, Longitude: $longitude');
-      return {'latitude': latitude, 'longitude': longitude};
-    } catch (e) {
-      print('Error getting location: $e');
-      return {'latitude': 0.0, 'longitude': 0.0};
-    }
-  }
-
-  Future<void> requestLocationPermission() async {
-    // Check if the location permission is already granted
-    if (await Permission.location.isGranted) {
-      print('Location permission already granted.');
-      return;
     }
 
-    // Request the location permission
-    PermissionStatus status = await Permission.location.request();
+    // Get the current position (latitude and longitude)
+    geo.Position position = await geo.Geolocator.getCurrentPosition(
+      desiredAccuracy: geo.LocationAccuracy.high,
+    );
 
-    if (status.isGranted) {
-      print('Location permission granted.');
-    } else if (status.isDenied) {
-      print('Location permission denied.');
-    } else if (status.isPermanentlyDenied) {
-      print(
-          'Location permission permanently denied. You need to enable it from settings.');
-    }
+    return {'latitude': position.latitude, 'longitude': position.longitude};
   }
 
   Future<Map<String, dynamic>?> login(String email, String password) async {
@@ -102,10 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     var reqBody = jsonEncode(data);
 
-    print(reqBody);
-
     final response = await http.post(url, body: reqBody, headers: headers);
-    print(response.body);
+    print("response :: $response");
     if (response.statusCode == 200) {
       // If user found, return the response body as a Map
       final Map<String, dynamic> userData = json.decode(response.body);
@@ -155,8 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
@@ -190,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     children: [
                       const Padding(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: EdgeInsets.all(24.0),
                         child: Text(
                           "تسجيل الدخول",
                           style: TextStyle(color: Colors.white, fontSize: 24.0),
@@ -201,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20.0, vertical: 10.0),
-                          child: Container(
+                          child: SizedBox(
                             width: 250,
                             height: 50,
                             child: Directionality(
@@ -215,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   filled: true,
                                   fillColor: Colors.white,
                                   labelText: 'إيميل المستخدم',
-                                  prefixIcon: Icon(Icons.person),
+                                  prefixIcon: const Icon(Icons.person),
                                 ),
                                 onChanged: (value) {
                                   setState(() {
@@ -252,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   filled: true,
                                   fillColor: Colors.white,
                                   labelText: 'كلمة المرور',
-                                  prefixIcon: Icon(Icons.lock),
+                                  prefixIcon: const Icon(Icons.lock),
                                 ),
                                 onChanged: (value) {
                                   setState(() {
@@ -268,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         visible: !widget.isLoggedIn ^ isButtonPressed,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: Container(
+                          child: SizedBox(
                             height: 40,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
@@ -282,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     end: Alignment.bottomCenter,
                                   ),
                                   borderRadius: BorderRadius.circular(7),
-                                  boxShadow: <BoxShadow>[
+                                  boxShadow: const <BoxShadow>[
                                     BoxShadow(
                                         color: Color.fromRGBO(
                                             0, 0, 0, 0.57), //shadow for button
@@ -291,10 +261,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextButton(
                                 style: ButtonStyle(
                                   foregroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.black),
                                   backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.transparent),
                                 ),
                                 onPressed: () async {
@@ -303,24 +273,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                   if (user != null) {
                                     // ignore: use_build_context_synchronously
-                                    await requestLocationPermission();
                                     Map<String, double> position =
-                                        await getLocation();
+                                        await getCurrentPosition();
                                     double? latitude = position["latitude"];
                                     double? longitude = position["longitude"];
                                     // ignore: use_build_context_synchronously
 
-                                    LandingScreen().storage.write(
+                                    const LandingScreen().storage.write(
                                         key: "userId", value: user["id"]);
-                                    LandingScreen().storage.write(
+                                    const LandingScreen().storage.write(
                                         key: "email", value: user["email"]);
-                                    LandingScreen().storage.write(
+                                    const LandingScreen().storage.write(
                                         key: "password",
                                         value: user["password"]);
 
-                                    LandingScreen().storage.write(
+                                    const LandingScreen().storage.write(
                                         key: "name", value: user["name"]);
-                                    LandingScreen().storage.write(
+                                    const LandingScreen().storage.write(
                                         key: "call_key",
                                         value: user["call_key"]);
                                     _navigateToJoinScreen(
@@ -333,9 +302,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   // ignore: use_build_context_synchronously
                                 },
                                 child: const Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: 10.0, left: 10),
-                                  child: const Text(
+                                  padding:
+                                      EdgeInsets.only(right: 10.0, left: 10),
+                                  child: Text(
                                       style: TextStyle(fontSize: 16), 'دخول'),
                                 ),
                               ),
@@ -349,9 +318,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: TextButton(
                             style: ButtonStyle(
-                              foregroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              foregroundColor:
+                                  WidgetStateProperty.all<Color>(Colors.white),
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   Colors.transparent),
                             ),
                             onPressed: () async {
@@ -372,12 +341,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         visible: widget.isLoggedIn ^ isButtonPressed,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 40.0, bottom: 40),
-                          child: Container(
+                          child: SizedBox(
                             width: 250,
                             height: 40,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [
                                       Color.fromARGB(207, 207, 207, 207),
                                       Colors.white,
@@ -387,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     end: Alignment.bottomCenter,
                                   ),
                                   borderRadius: BorderRadius.circular(7),
-                                  boxShadow: <BoxShadow>[
+                                  boxShadow: const <BoxShadow>[
                                     BoxShadow(
                                         color: Color.fromRGBO(
                                             0, 0, 0, 0.57), //shadow for button
@@ -396,10 +365,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextButton(
                                 style: ButtonStyle(
                                   foregroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.black),
                                   backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.transparent),
                                 ),
                                 onPressed: () async {
@@ -407,29 +376,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                       await LocalAuth.authenticate();
                                   print("out");
                                   if (authentication == true) {
-                                    LandingScreen()
+                                    const LandingScreen()
                                         .storage
                                         .read(key: "userId")
                                         .then((userId) {
-                                      LandingScreen()
+                                      const LandingScreen()
                                           .storage
                                           .read(key: "name")
                                           .then((name) {
-                                        LandingScreen()
+                                        const LandingScreen()
                                             .storage
                                             .read(key: "email")
                                             .then((email) {
-                                          LandingScreen()
+                                          const LandingScreen()
                                               .storage
                                               .read(key: "password")
                                               .then((password) {
-                                            LandingScreen()
+                                            const LandingScreen()
                                                 .storage
                                                 .read(key: "call_key")
                                                 .then((callKey) async {
-                                              await requestLocationPermission();
                                               Map<String, double> position =
-                                                  await getLocation();
+                                                  await getCurrentPosition();
                                               double? latitude =
                                                   position["latitude"];
                                               double? longitude =
@@ -455,10 +423,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     });
                                   }
                                 },
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                  child: const Text(
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
+                                  child: Text(
                                       style: TextStyle(fontSize: 16),
                                       'دخول عبر بصمة الوجه'),
                                 ),
@@ -471,12 +438,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         visible: widget.isLoggedIn,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: Container(
+                          child: SizedBox(
                             width: 250,
                             height: 40,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [
                                       Color.fromARGB(207, 207, 207, 207),
                                       Colors.white,
@@ -486,7 +453,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     end: Alignment.bottomCenter,
                                   ),
                                   borderRadius: BorderRadius.circular(7),
-                                  boxShadow: <BoxShadow>[
+                                  boxShadow: const <BoxShadow>[
                                     BoxShadow(
                                         color: Color.fromRGBO(
                                             0, 0, 0, 0.57), //shadow for button
@@ -495,10 +462,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextButton(
                                 style: ButtonStyle(
                                   foregroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.black),
                                   backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                      WidgetStateProperty.all<Color>(
                                           Colors.transparent),
                                 ),
                                 onPressed: () {
@@ -508,10 +475,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     isButtonPressed = !isButtonPressed;
                                   });
                                 },
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                  child: const Text(
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
+                                  child: Text(
                                       style: TextStyle(fontSize: 16),
                                       'تغيير وسيلة الدخول'),
                                 ),
@@ -522,12 +488,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 10.0),
-                        child: Container(
+                        child: SizedBox(
                           width: 250,
                           height: 40,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                                gradient: LinearGradient(
+                                gradient: const LinearGradient(
                                   colors: [
                                     Color.fromARGB(207, 207, 207, 207),
                                     Colors.white,
@@ -537,7 +503,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   end: Alignment.bottomCenter,
                                 ),
                                 borderRadius: BorderRadius.circular(7),
-                                boxShadow: <BoxShadow>[
+                                boxShadow: const <BoxShadow>[
                                   BoxShadow(
                                       color: Color.fromRGBO(
                                           0, 0, 0, 0.57), //shadow for button
@@ -545,12 +511,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ]),
                             child: TextButton(
                               style: ButtonStyle(
-                                foregroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.black),
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.transparent),
+                                foregroundColor: WidgetStateProperty.all<Color>(
+                                    Colors.black),
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                    Colors.transparent),
                               ),
                               onPressed: () {
                                 // loginWithEmailAndPassword(username, password); temporarly disabled for testing
@@ -561,9 +525,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           const RegistrationScreen()),
                                 );
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                child: const Text(
+                              child: const Padding(
+                                padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
+                                child: Text(
                                     style: TextStyle(fontSize: 16),
                                     'إنشاء حساب جدبد'),
                               ),
