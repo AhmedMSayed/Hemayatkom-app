@@ -1,4 +1,4 @@
-package com.example.hemaya
+package com.hemaya
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -16,10 +16,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: ">=3.5.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,25 +31,17 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.2
-  flutter_webrtc: ^0.9.20
-  socket_io_client: ^2.0.1
-  geolocator: ^8.0.1
-  permission_handler: ^9.0.0
-  path_provider: ^2.0.9
-  path: ^1.8.0
-  image: ^3.0.2
-  font_awesome_flutter: ^9.0.0
-  url_launcher: ^6.0.3
-  get_it: ^7.2.0
-  tflite_flutter: ^0.9.0
-  http: ^0.13.3
-  local_auth: ^2.1.2
-  flutter_secure_storage: ^7.0.1
-  provider: ^6.0.5
-  flutter_native_splash: ^1.2.0
-
-
+  cupertino_icons: ^1.0.8
+  flutter_webrtc: ^0.12.5
+  socket_io_client: ^3.0.2
+  geolocator: ^13.0.2
+  location: ^7.0.1
+  http: ^1.2.2
+  local_auth: ^2.3.0
+  local_auth_android: ^1.0.46
+  local_auth_darwin: ^1.4.2
+  flutter_secure_storage: ^9.2.2
+  provider: ^6.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -63,21 +55,39 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
-  flutter_native_splash: ^1.2.0
+  flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.3
+  flutter_launcher_icons: ^0.14.2
+  dart_code_metrics: ^4.19.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Flutter packages.
-flutter:
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
-  uses-material-design: true
+# dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/launcher-icon.png"
+  adaptive_icon_foreground: "assets/launcher-icon.png"
+  adaptive_icon_background: "#ffffff"
+  remove_alpha_ios: true
 
-  # To add assets to your application, add an assets section, like this:
+# dart run flutter_native_splash:create
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+  color: "#ffffff"
+  image: assets/launcher-icon.png
+  android_12:
+    image: assets/launcher-icon.png
+    icon_background_color: "#ffffff"
+
+# The following section is specific to Flutter.
+flutter:
+  uses-material-design: true
   assets:
+    - assets/
     - assets/hemaya.png
     - assets/complete.png
     - assets/hold.png
@@ -86,33 +96,3 @@ flutter:
     - assets/profile.png
     - assets/messages.png
     - assets/user.png
-
-
-
-
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/assets-and-images/#from-packages
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/custom-fonts/#from-packages
