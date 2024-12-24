@@ -218,7 +218,7 @@ Future<Map<String, dynamic>?> updateUser(
   String email,
   String phoneNumber,
   String password) async {
-  final url = Uri.parse("http://13.36.63.83:5956/users/$userId");
+  final url = Uri.parse("https://hemaya.site/users/$userId");
 
   // Create a map with the updated user data
   Map<String, dynamic> userData = {

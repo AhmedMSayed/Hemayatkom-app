@@ -16,8 +16,8 @@ class CallsScreen extends StatefulWidget {
 
 class _CallsScreenState extends State<CallsScreen> {
   Future<List<dynamic>> getSessions(String userId) async {
-    final url = Uri.parse(
-        "http://13.36.63.83:5956/session"); // Replace with the actual URL
+    final url =
+        Uri.parse("https://hemaya.site/session"); // Replace with the actual URL
 
     print(userId);
 

@@ -27,8 +27,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<bool> registerUser(String email, String password, String name) async {
-    final url = Uri.parse(
-        "http://13.36.63.83:5956/users"); // Replace with the actual URL
+    final url =
+        Uri.parse("https://hemaya.site/users"); // Replace with the actual URL
 
     var data = {
       'email': email,

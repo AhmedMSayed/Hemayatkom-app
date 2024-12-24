@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<Map<String, dynamic>?> login(String email, String password) async {
-    final url = Uri.parse("http://13.36.63.83:5956/signin");
+    final url = Uri.parse("https://hemaya.site/signin");
 
     print(email);
     print(password);
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   _navigateToJoinScreen(user, latitude, longitude) {
     // signalling server url
-    const String websocketUrl = "http://13.36.63.83:5000";
+    const String websocketUrl = "https://hemaya.site:443";
 
     // init signalling service
     SignallingService.instance.init(
