@@ -42,3 +42,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Node.js related (not needed for Flutter)
+node_modules/
+package-lock.json
+package.json
+
+# Additional cleanup
+*.tmp
+*.cache
