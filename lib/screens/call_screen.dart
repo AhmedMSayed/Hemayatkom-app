@@ -64,6 +64,15 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   _setupPeerConnection() async {
+    print("🔧 Starting peer connection setup...");
+
+    // Clean up any existing connection first
+    if (_rtcPeerConnection != null) {
+      print("🧹 Cleaning up existing peer connection");
+      await _rtcPeerConnection?.dispose();
+      _rtcPeerConnection = null;
+    }
+
     // create peer connection
     _rtcPeerConnection = await createPeerConnection({'iceServers': AppConstants.iceServers});
 
@@ -88,7 +97,7 @@ class _CallScreenState extends State<CallScreen> {
     _localRTCVideoRenderer.srcObject = _localStream;
     setState(() {});
 
-    print("Peer connection setup completed for incoming call: $incomingCall");
+    print("✅ Peer connection setup completed for incoming call: $incomingCall");
 
     if (incomingCall) {
       // listen for Remote IceCandidate
@@ -168,8 +177,31 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   _leaveCall() {
+    // Clean up resources before leaving
+    _cleanupResources();
     Provider.of<CallState>(context, listen: false).clearIncomingCall();
     Navigator.pop(context);
+  }
+
+  _cleanupResources() {
+    // Dispose and reset peer connection
+    _rtcPeerConnection?.dispose();
+    _rtcPeerConnection = null;
+
+    // Clear ice candidates
+    rtcIceCadidates.clear();
+
+    // Dispose local stream
+    _localStream?.dispose();
+    _localStream = null;
+
+    // Reset media status
+    isAudioOn = true;
+    isVideoOn = true;
+    isFrontCameraSelected = true;
+    tapCount = 0;
+
+    print("🧹 Resources cleaned up");
   }
 
   _toggleMic() {
@@ -238,11 +270,11 @@ class _CallScreenState extends State<CallScreen> {
                       left: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           // Handle the tap based on the tap count
                           if (tapCount == 0) {
                             // First tap - Make the call
-                            _setupPeerConnection();
+                            await _setupPeerConnection();
                             print('Making the call...');
                           } else if (tapCount == 1) {
                             // Second tap - Cancel the call
@@ -292,6 +324,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
+    _cleanupResources();
     _localRTCVideoRenderer.dispose();
     _remoteRTCVideoRenderer.dispose();
     _localStream?.dispose();
