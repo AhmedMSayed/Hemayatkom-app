@@ -1,38 +1,35 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:hemaya/providers/call_state.dart';
 import 'package:hemaya/screens/join_screen.dart';
-import 'package:hemaya/screens/langdingScreen.dart';
 import 'package:hemaya/screens/registeration_screen.dart';
+import 'package:hemaya/services/api_service.dart';
 import 'package:hemaya/services/local_auth_service.dart';
-import 'package:http/http.dart' as http;
+import 'package:hemaya/theme/app_theme.dart';
+import 'package:hemaya/utils/constants.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
+
 import '../services/signalling.service.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLoggedIn;
-  const LoginScreen({super.key, required this.isLoggedIn});
+  const LoginScreen({required this.isLoggedIn, super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   String username = '';
   String password = '';
-  static bool isButtonPressed = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  bool isButtonPressed = false;
+  bool isLoading = false;
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   Future<Map<String, double>> getCurrentPosition() async {
-    Location location = Location();
+    final Location location = Location();
 
     bool isLocationServiceEnabled = await location.serviceEnabled();
     if (!isLocationServiceEnabled) {
@@ -52,74 +49,235 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
-    // Get the current position (latitude and longitude)
-    geo.Position position = await geo.Geolocator.getCurrentPosition(
-      desiredAccuracy: geo.LocationAccuracy.high,
+    // Get the current position using updated API
+    final geo.Position position = await geo.Geolocator.getCurrentPosition(
+      locationSettings: const geo.LocationSettings(accuracy: geo.LocationAccuracy.high, distanceFilter: 100),
     );
 
     return {'latitude': position.latitude, 'longitude': position.longitude};
   }
 
   Future<Map<String, dynamic>?> login(String email, String password) async {
-    final url = Uri.parse("https://hemaya.site/signin");
+    try {
+      print('🔑 Attempting login for email: $email');
 
-    print(email);
-    print(password);
+      final result = await ApiService.signIn(email, password);
 
-    Map<String, String> headers = {
-      "Content-type": "application/json",
-    };
-
-    var data = {'email': email, 'password': password};
-
-    var reqBody = jsonEncode(data);
-
-    final response = await http.post(url, body: reqBody, headers: headers);
-    print("response :: $response");
-    if (response.statusCode == 200) {
-      // If user found, return the response body as a Map
-      final Map<String, dynamic> userData = json.decode(response.body);
-      // Provider.of<UserProvider>(context, listen: false)
-      //     .setUserCallKey(userData["call_key"]);
-      return userData;
-    } else {
-      // If no user found or other error, return null
+      if (result['success'] == true) {
+        final userData = result['data'] as Map<String, dynamic>;
+        print('✅ Login successful for user: ${userData["name"]}');
+        return userData;
+      } else {
+        print('❌ Login failed: ${result['error']}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Login error: $e');
       return null;
     }
   }
 
-  _navigateToJoinScreen(user, latitude, longitude) {
-    // signalling server url
-    const String websocketUrl = "https://hemaya.site:443";
+  Future<void> _navigateToJoinScreen(Map<String, dynamic> user, double latitude, double longitude) async {
+    if (!mounted) return;
 
-    // init signalling service
-    SignallingService.instance.init(
-      websocketUrl: websocketUrl,
-      selfCallerID: user["call_key"],
-    );
+    try {
+      // init signalling service
+      SignallingService.instance.init(websocketUrl: AppConstants.websocketUrl, selfCallerID: user["call_key"]);
 
-    print('# ' * 100);
-    SignallingService.instance.socket!.on("newMobileCall", (data) {
-      print("CALL OFFER:");
-      // Access the CallState provider
-      final callState = Provider.of<CallState>(context, listen: false);
-      // Set SDP Offer of incoming call
-      callState.setIncomingCall(data);
-      print(data);
-      print('# ' * 100);
-    });
+      print('Setting up call listener...');
+      SignallingService.instance.socket!.on("newMobileCall", (data) {
+        print('Incoming call offer received');
+        if (mounted) {
+          final callState = Provider.of<CallState>(context, listen: false);
+          callState.setIncomingCall(data);
+          print('Call data: $data');
+        }
+      });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => JoinScreen(
+      if (mounted) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JoinScreen(
               selfCallerId: user["id"],
               name: user["name"],
               email: user["email"],
               password: user["password"],
               lat: latitude,
               long: longitude,
-              userId: user["id"])),
+              userId: user["id"],
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Navigation error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في الاتصال')));
+      }
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى ملء جميع الحقول')));
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final Map<String, dynamic>? user = await login(username, password);
+
+      if (user != null && mounted) {
+        final Map<String, double> position = await getCurrentPosition();
+        final double? latitude = position["latitude"];
+        final double? longitude = position["longitude"];
+
+        // Store user data securely
+        await storage.write(key: "userId", value: user["id"]);
+        await storage.write(key: "email", value: user["email"]);
+        await storage.write(key: "password", value: user["password"]);
+        await storage.write(key: "name", value: user["name"]);
+        await storage.write(key: "call_key", value: user["call_key"]);
+
+        if (mounted) {
+          await _navigateToJoinScreen(user, latitude ?? 0.0, longitude ?? 0.0);
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("بيانات المستخدم غير صحيحة"), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      print('Login process error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حدث خطأ في تسجيل الدخول')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleBiometricLogin() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final authentication = await LocalAuth.authenticate();
+      print('Biometric authentication result: $authentication');
+
+      if (authentication == true && mounted) {
+        final userId = await storage.read(key: "userId");
+        final name = await storage.read(key: "name");
+        final email = await storage.read(key: "email");
+        final password = await storage.read(key: "password");
+        final callKey = await storage.read(key: "call_key");
+
+        if (userId != null && name != null && email != null && password != null && callKey != null) {
+          final Map<String, double> position = await getCurrentPosition();
+          final double? latitude = position["latitude"];
+          final double? longitude = position["longitude"];
+
+          final Map<String, dynamic> user = {
+            "id": userId,
+            "name": name,
+            "email": email,
+            "password": password,
+            "call_key": callKey,
+          };
+
+          if (mounted) {
+            await _navigateToJoinScreen(user, latitude ?? 0.0, longitude ?? 0.0);
+          }
+        }
+      }
+    } catch (e) {
+      print('Biometric login error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('فشل في المصادقة البيومترية')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildTextField({
+    required String labelText,
+    required IconData icon,
+    required bool isPassword,
+    required Function(String) onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10.0),
+      child: SizedBox(
+        width: 250,
+        height: 50,
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: TextField(
+            textDirection: TextDirection.rtl,
+            obscureText: isPassword,
+            style: AppTheme.bodyTextStyle,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+              ),
+              filled: true,
+              fillColor: AppTheme.cardColor,
+              labelText: labelText,
+              labelStyle: AppTheme.bodyTextStyle.copyWith(color: AppTheme.textSecondary),
+              prefixIcon: Icon(icon, color: AppTheme.textSecondary),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            onChanged: onChanged,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGradientButton({required String text, required VoidCallback onPressed, double width = 250}) {
+    return SizedBox(
+      width: width,
+      height: 50,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: AppTheme.buttonGradient,
+          borderRadius: AppTheme.buttonBorderRadius,
+          boxShadow: AppTheme.buttonShadow,
+        ),
+        child: TextButton(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all<Color>(AppTheme.textPrimary),
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(borderRadius: AppTheme.buttonBorderRadius),
+            ),
+          ),
+          onPressed: isLoading ? null : onPressed,
+          child: isLoading
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(text, style: AppTheme.buttonTextStyle),
+        ),
+      ),
     );
   }
 
@@ -134,405 +292,98 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.only(top: 50.0),
-                  child: Image.asset(
-                    'assets/hemaya.png',
-                    width: 140,
-                    height: 140,
-                  ),
+                  child: Image.asset(AppConstants.appLogo, width: 140, height: 140),
                 ),
                 Container(
                   height: MediaQuery.of(context).size.height - 210,
                   alignment: Alignment.bottomCenter,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF009F98), Color(0xFF1281AE)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30.0),
-                      topRight: Radius.circular(30.0),
-                    ),
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(30.0), topRight: Radius.circular(30.0)),
                   ),
-                  margin:
-                      const EdgeInsets.only(left: 8.0, right: 8.0, top: 20.0),
+                  margin: const EdgeInsets.only(left: 8.0, right: 8.0, top: 20.0),
                   padding: const EdgeInsets.only(top: 20, bottom: 50),
                   child: Column(
                     children: [
                       const Padding(
                         padding: EdgeInsets.all(24.0),
-                        child: Text(
-                          "تسجيل الدخول",
-                          style: TextStyle(color: Colors.white, fontSize: 24.0),
+                        child: Text("تسجيل الدخول", style: AppTheme.titleTextStyle),
+                      ),
+                      // Username field
+                      Visibility(
+                        visible: !widget.isLoggedIn || isButtonPressed,
+                        child: _buildTextField(
+                          labelText: 'إيميل المستخدم',
+                          icon: Icons.person,
+                          isPassword: false,
+                          onChanged: (value) => setState(() => username = value),
                         ),
                       ),
+                      // Password field
                       Visibility(
-                        visible: !widget.isLoggedIn ^ isButtonPressed,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 10.0),
-                          child: SizedBox(
-                            width: 250,
-                            height: 50,
-                            child: Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: TextField(
-                                textDirection: TextDirection.rtl,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  labelText: 'إيميل المستخدم',
-                                  prefixIcon: const Icon(Icons.person),
-                                ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    username = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
+                        visible: !widget.isLoggedIn || isButtonPressed,
+                        child: _buildTextField(
+                          labelText: 'كلمة المرور',
+                          icon: Icons.lock,
+                          isPassword: true,
+                          onChanged: (value) => setState(() => password = value),
                         ),
                       ),
+                      // Login button
                       Visibility(
-                        visible: !widget.isLoggedIn ^ isButtonPressed,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 10.0),
-                          child: Container(
-                            width: 250,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                  10), // Adjust the radius as needed
-                              color: Colors.white,
-                            ),
-                            child: Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: TextField(
-                                textDirection: TextDirection.rtl,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  labelText: 'كلمة المرور',
-                                  prefixIcon: const Icon(Icons.lock),
-                                ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    password = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: !widget.isLoggedIn ^ isButtonPressed,
+                        visible: !widget.isLoggedIn || isButtonPressed,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: SizedBox(
-                            height: 40,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color.fromARGB(207, 207, 207, 207),
-                                      Colors.white,
-                                      //add more colors
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                  borderRadius: BorderRadius.circular(7),
-                                  boxShadow: const <BoxShadow>[
-                                    BoxShadow(
-                                        color: Color.fromRGBO(
-                                            0, 0, 0, 0.57), //shadow for button
-                                        blurRadius: 5) //blur radius of shadow
-                                  ]),
-                              child: TextButton(
-                                style: ButtonStyle(
-                                  foregroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.black),
-                                  backgroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.transparent),
-                                ),
-                                onPressed: () async {
-                                  Map<String, dynamic>? user =
-                                      await login(username, password);
-
-                                  if (user != null) {
-                                    // ignore: use_build_context_synchronously
-                                    Map<String, double> position =
-                                        await getCurrentPosition();
-                                    double? latitude = position["latitude"];
-                                    double? longitude = position["longitude"];
-                                    // ignore: use_build_context_synchronously
-
-                                    const LandingScreen().storage.write(
-                                        key: "userId", value: user["id"]);
-                                    const LandingScreen().storage.write(
-                                        key: "email", value: user["email"]);
-                                    const LandingScreen().storage.write(
-                                        key: "password",
-                                        value: user["password"]);
-
-                                    const LandingScreen().storage.write(
-                                        key: "name", value: user["name"]);
-                                    const LandingScreen().storage.write(
-                                        key: "call_key",
-                                        value: user["call_key"]);
-                                    _navigateToJoinScreen(
-                                        user, latitude, longitude);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Invalid user")));
-                                  }
-                                  // ignore: use_build_context_synchronously
-                                },
-                                child: const Padding(
-                                  padding:
-                                      EdgeInsets.only(right: 10.0, left: 10),
-                                  child: Text(
-                                      style: TextStyle(fontSize: 16), 'دخول'),
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: _buildGradientButton(text: 'دخول', onPressed: _handleLogin),
                         ),
                       ),
+                      // Forgot password button
                       Visibility(
-                        visible: !widget.isLoggedIn ^ isButtonPressed,
+                        visible: !widget.isLoggedIn || isButtonPressed,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: TextButton(
                             style: ButtonStyle(
-                              foregroundColor:
-                                  WidgetStateProperty.all<Color>(Colors.white),
-                              backgroundColor: WidgetStateProperty.all<Color>(
-                                  Colors.transparent),
+                              foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                              backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
                             ),
-                            onPressed: () async {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //       builder: (context) =>
-                              //           const RegistrationScreen()),
-                              // );
+                            onPressed: () {
+                              // TODO: Implement forgot password
                             },
-                            child: const Text(
-                                style: TextStyle(fontSize: 17),
-                                'نسيت كلمة المرور'),
+                            child: const Text('نسيت كلمة المرور', style: TextStyle(fontSize: 17)),
                           ),
                         ),
                       ),
+                      // Biometric login button
                       Visibility(
-                        visible: widget.isLoggedIn ^ isButtonPressed,
+                        visible: widget.isLoggedIn && !isButtonPressed,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 40.0, bottom: 40),
-                          child: SizedBox(
-                            width: 250,
-                            height: 40,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color.fromARGB(207, 207, 207, 207),
-                                      Colors.white,
-                                      //add more colors
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                  borderRadius: BorderRadius.circular(7),
-                                  boxShadow: const <BoxShadow>[
-                                    BoxShadow(
-                                        color: Color.fromRGBO(
-                                            0, 0, 0, 0.57), //shadow for button
-                                        blurRadius: 5) //blur radius of shadow
-                                  ]),
-                              child: TextButton(
-                                style: ButtonStyle(
-                                  foregroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.black),
-                                  backgroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.transparent),
-                                ),
-                                onPressed: () async {
-                                  final authentication =
-                                      await LocalAuth.authenticate();
-                                  print("out");
-                                  if (authentication == true) {
-                                    const LandingScreen()
-                                        .storage
-                                        .read(key: "userId")
-                                        .then((userId) {
-                                      const LandingScreen()
-                                          .storage
-                                          .read(key: "name")
-                                          .then((name) {
-                                        const LandingScreen()
-                                            .storage
-                                            .read(key: "email")
-                                            .then((email) {
-                                          const LandingScreen()
-                                              .storage
-                                              .read(key: "password")
-                                              .then((password) {
-                                            const LandingScreen()
-                                                .storage
-                                                .read(key: "call_key")
-                                                .then((callKey) async {
-                                              Map<String, double> position =
-                                                  await getCurrentPosition();
-                                              double? latitude =
-                                                  position["latitude"];
-                                              double? longitude =
-                                                  position["longitude"];
-
-                                              Map<String, dynamic> user = {
-                                                "id": userId!,
-                                                "name": name!,
-                                                "email": email!,
-                                                "password": password!,
-                                                "lat": latitude!,
-                                                "long": longitude!,
-                                                "userId": userId,
-                                                "call_key": callKey,
-                                              };
-
-                                              _navigateToJoinScreen(
-                                                  user, latitude, longitude);
-                                            });
-                                          });
-                                        });
-                                      });
-                                    });
-                                  }
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                  child: Text(
-                                      style: TextStyle(fontSize: 16),
-                                      'دخول عبر بصمة الوجه'),
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: _buildGradientButton(text: 'دخول عبر بصمة الوجه', onPressed: _handleBiometricLogin),
                         ),
                       ),
+                      // Switch login method button
                       Visibility(
                         visible: widget.isLoggedIn,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 10.0),
-                          child: SizedBox(
-                            width: 250,
-                            height: 40,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color.fromARGB(207, 207, 207, 207),
-                                      Colors.white,
-                                      //add more colors
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                  borderRadius: BorderRadius.circular(7),
-                                  boxShadow: const <BoxShadow>[
-                                    BoxShadow(
-                                        color: Color.fromRGBO(
-                                            0, 0, 0, 0.57), //shadow for button
-                                        blurRadius: 5) //blur radius of shadow
-                                  ]),
-                              child: TextButton(
-                                style: ButtonStyle(
-                                  foregroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.black),
-                                  backgroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          Colors.transparent),
-                                ),
-                                onPressed: () {
-                                  // loginWithEmailAndPassword(username, password); temporarly disabled for testing
-
-                                  setState(() {
-                                    isButtonPressed = !isButtonPressed;
-                                  });
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                  child: Text(
-                                      style: TextStyle(fontSize: 16),
-                                      'تغيير وسيلة الدخول'),
-                                ),
-                              ),
-                            ),
+                          child: _buildGradientButton(
+                            text: 'تغيير وسيلة الدخول',
+                            onPressed: () => setState(() => isButtonPressed = !isButtonPressed),
                           ),
                         ),
                       ),
+                      // Register button
                       Padding(
                         padding: const EdgeInsets.only(top: 10.0),
-                        child: SizedBox(
-                          width: 250,
-                          height: 40,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color.fromARGB(207, 207, 207, 207),
-                                    Colors.white,
-                                    //add more colors
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                                borderRadius: BorderRadius.circular(7),
-                                boxShadow: const <BoxShadow>[
-                                  BoxShadow(
-                                      color: Color.fromRGBO(
-                                          0, 0, 0, 0.57), //shadow for button
-                                      blurRadius: 5) //blur radius of shadow
-                                ]),
-                            child: TextButton(
-                              style: ButtonStyle(
-                                foregroundColor: WidgetStateProperty.all<Color>(
-                                    Colors.black),
-                                backgroundColor: WidgetStateProperty.all<Color>(
-                                    Colors.transparent),
-                              ),
-                              onPressed: () {
-                                // loginWithEmailAndPassword(username, password); temporarly disabled for testing
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RegistrationScreen()),
-                                );
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.fromLTRB(8, 1, 8, 1),
-                                child: Text(
-                                    style: TextStyle(fontSize: 16),
-                                    'إنشاء حساب جدبد'),
-                              ),
-                            ),
-                          ),
+                        child: _buildGradientButton(
+                          text: 'إنشاء حساب جديد',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                            );
+                          },
                         ),
                       ),
                     ],
