@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.hemaya"
+        applicationId = "com.hemayatkom"
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode
