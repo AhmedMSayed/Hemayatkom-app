@@ -24,7 +24,7 @@ class LocalAuth {
           const IOSAuthMessages(cancelButton: "الغاء"),
         ],
         localizedReason: 'تسجيل الدخول',
-        options: const AuthenticationOptions(useErrorDialogs: true, stickyAuth: true, biometricOnly: true),
+        biometricOnly: true,
       );
     } catch (error) {
       print('Biometric authentication error: $error');
