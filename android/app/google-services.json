@@ -1,65 +1,26 @@
 {
   "project_info": {
-    "project_number": "1076969463774",
-    "project_id": "hemaya-860b8",
-    "storage_bucket": "hemaya-860b8.appspot.com"
+    "project_number": "223021708724",
+    "project_id": "hemayatkom-73315",
+    "storage_bucket": "hemayatkom-73315.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1076969463774:android:e56f9bcb613a72cac7c74f",
+        "mobilesdk_app_id": "1:223021708724:android:326c83fa5bf59a2edc6ee1",
         "android_client_info": {
-          "package_name": "com.hemaya"
+          "package_name": "com.hemayatkom"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1076969463774-b01a9jnd22rf4no8h3243gdmleu53iu1.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCp6YL465s5S0kPhMSQVbsVHrhvRKU6OW8"
+          "current_key": "AIzaSyCp2m7EfSTDhFd5iYtaUMXYlDxlBU4KQOM"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1076969463774-b01a9jnd22rf4no8h3243gdmleu53iu1.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1076969463774:android:d1c3ae31db75845fc7c74f",
-        "android_client_info": {
-          "package_name": "com.hemaya"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "1076969463774-b01a9jnd22rf4no8h3243gdmleu53iu1.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCp6YL465s5S0kPhMSQVbsVHrhvRKU6OW8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1076969463774-b01a9jnd22rf4no8h3243gdmleu53iu1.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

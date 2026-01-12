@@ -15,7 +15,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.hemaya"
+    namespace = "com.hemayatkom"
     compileSdk = 36
     ndkVersion = "28.1.13356709"
 
